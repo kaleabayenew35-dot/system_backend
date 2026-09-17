@@ -359,9 +359,9 @@ const getGamesList = (req, res) => {
 
 const createGame = (req, res) => {
   if (guard(req, res)) return;
-  const { name, game_url, mini_app_url, description, min_players, max_players } = req.body;
+  const { name, game_url, mini_app_url, backend_url, description, min_players, max_players } = req.body;
 
-  gameModel.createGame({ name, game_url, mini_app_url, description, min_players, max_players }, (dbErr, gameId) => {
+  gameModel.createGame({ name, game_url, mini_app_url, backend_url, description, min_players, max_players }, (dbErr, gameId) => {
     if (dbErr) return err(res, dbErr.message || 'Failed to create game', 400);
     return ok(res, { gameId, message: 'Game added successfully' }, 201);
   });
@@ -370,9 +370,9 @@ const createGame = (req, res) => {
 const updateGame = (req, res) => {
   if (guard(req, res)) return;
   const { id } = req.params;
-  const { name, game_url, mini_app_url, description, status } = req.body;
+  const { name, game_url, mini_app_url, backend_url, description, status } = req.body;
 
-  gameModel.updateGame(id, { name, game_url, mini_app_url, description, status }, (dbErr, changes) => {
+  gameModel.updateGame(id, { name, game_url, mini_app_url, backend_url, description, status }, (dbErr, changes) => {
     if (dbErr) return err(res, 'Failed to update game', 500);
     if (!changes) return err(res, 'Game not found', 404);
     return ok(res, { message: 'Game updated' });

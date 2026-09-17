@@ -28,25 +28,26 @@ const getGameById = (gameId, callback) => {
 
 // ── Admin CRUD ────────────────────────────────────────────────────────────────
 
-const createGame = ({ name, description, game_url, mini_app_url, min_players, max_players, status = 'active' }, callback) => {
+const createGame = ({ name, description, game_url, mini_app_url, backend_url, min_players, max_players, status = 'active' }, callback) => {
   db.run(
-    `INSERT INTO games (name, description, game_url, mini_app_url, min_players, max_players, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [name, description || null, game_url, mini_app_url || null, min_players || 1, max_players || 1, status],
+    `INSERT INTO games (name, description, game_url, mini_app_url, backend_url, min_players, max_players, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [name, description || null, game_url, mini_app_url || null, backend_url || null, min_players || 1, max_players || 1, status],
     function (err) { callback(err, this.lastID); }
   );
 };
 
-const updateGame = (id, { name, game_url, mini_app_url, description, status }, callback) => {
+const updateGame = (id, { name, game_url, mini_app_url, backend_url, description, status }, callback) => {
   db.run(
     `UPDATE games
      SET name = COALESCE(?, name),
          game_url = COALESCE(?, game_url),
          mini_app_url = COALESCE(?, mini_app_url),
+         backend_url = COALESCE(?, backend_url),
          description = COALESCE(?, description),
          status = COALESCE(?, status)
      WHERE id = ?`,
-    [name ?? null, game_url ?? null, mini_app_url ?? null, description ?? null, status ?? null, id],
+    [name ?? null, game_url ?? null, mini_app_url ?? null, backend_url ?? null, description ?? null, status ?? null, id],
     function (err) { callback(err, this.changes); }
   );
 };

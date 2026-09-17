@@ -133,6 +133,7 @@ const ensureGamesSchema = () => {
       description TEXT,
       game_url TEXT,
       mini_app_url TEXT,
+      backend_url TEXT,
       min_players INTEGER DEFAULT 1,
       max_players INTEGER DEFAULT 1,
       status TEXT DEFAULT 'active',
@@ -150,17 +151,24 @@ const ensureGamesSchema = () => {
         return;
       }
 
-      const hasMiniAppUrl = columns.some((column) => column.name === 'mini_app_url');
-      if (!hasMiniAppUrl) {
-        db.run(`ALTER TABLE games ADD COLUMN mini_app_url TEXT`, (alterErr) => {
-          if (alterErr) {
-            console.error('Error adding mini_app_url column:', alterErr.message);
-          }
-          seedDefaultGamesIfEmpty();
-        });
-      } else {
-        seedDefaultGamesIfEmpty();
+      const migrations = [];
+      if (!columns.some((column) => column.name === 'mini_app_url')) {
+        migrations.push('ALTER TABLE games ADD COLUMN mini_app_url TEXT');
       }
+      if (!columns.some((column) => column.name === 'backend_url')) {
+        migrations.push('ALTER TABLE games ADD COLUMN backend_url TEXT');
+      }
+
+      const runMigration = (index) => {
+        if (index >= migrations.length) return seedDefaultGamesIfEmpty();
+        db.run(migrations[index], (alterErr) => {
+          if (alterErr) {
+            console.error('Error migrating games table:', alterErr.message);
+          }
+          runMigration(index + 1);
+        });
+      };
+      runMigration(0);
     });
   });
 };

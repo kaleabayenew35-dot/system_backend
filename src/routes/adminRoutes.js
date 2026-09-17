@@ -35,6 +35,7 @@ const v = {
   gameBody: [
     body('name').trim().notEmpty().withMessage('name is required'),
     body('game_url').trim().notEmpty().withMessage('game_url is required'),
+    body('backend_url').optional({ values: 'null' }).isURL({ protocols: ['http', 'https'] }).withMessage('backend_url must be a valid http/https URL'),
   ],
   tokenBody: [
     body('game_id').isInt({ gt: 0 }).withMessage('game_id must be a positive integer'),
