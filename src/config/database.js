@@ -31,6 +31,39 @@ const defaultBackendUrl = (name) => {
   return null;
 };
 
+const ensureCoreGames = (callback = () => {}) => {
+  const games = [
+    { name: 'Ludo', frontendUrl: process.env.LUDO_FRONTEND_URL || null, backendUrl: defaultBackendUrl('ludo') },
+    { name: 'Bingo', frontendUrl: process.env.BINGO_FRONTEND_URL || null, backendUrl: defaultBackendUrl('bingo') },
+    { name: 'Tic Tac Toe', frontendUrl: process.env.XO_FRONTEND_URL || 'https://tic-tak-5qd1.onrender.com', backendUrl: defaultBackendUrl('xo') },
+    { name: 'Dama', frontendUrl: process.env.DAMA_FRONTEND_URL || 'https://dama-kyw6.onrender.com', backendUrl: defaultBackendUrl('dama') },
+  ];
+
+  const ensureNext = (index) => {
+    if (index >= games.length) return callback();
+    const game = games[index];
+    db.run(
+      `INSERT OR IGNORE INTO games (name, description, game_url, mini_app_url, backend_url, min_players, max_players, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'active')`,
+      [game.name, `${game.name} game`, game.frontendUrl, game.frontendUrl, game.backendUrl, 1, 4],
+      (insertErr) => {
+        if (insertErr) console.error(`Error ensuring ${game.name} game:`, insertErr.message);
+        db.run(
+          `UPDATE games SET status = 'active', backend_url = COALESCE(backend_url, ?)
+           WHERE name = ?`,
+          [game.backendUrl, game.name],
+          (updateErr) => {
+            if (updateErr) console.error(`Error activating ${game.name} game:`, updateErr.message);
+            ensureNext(index + 1);
+          }
+        );
+      }
+    );
+  };
+
+  ensureNext(0);
+};
+
 const insertDefaultGames = (callback = () => {}) => {
   const sampleGames = [
     {
@@ -185,7 +218,7 @@ const ensureGamesSchema = () => {
               ELSE backend_url END
              WHERE backend_url IS NULL OR backend_url = ''`,
             [backendUrls.bingo, backendUrls.dama, backendUrls.ludo, backendUrls.xo],
-            () => seedDefaultGamesIfEmpty()
+            () => seedDefaultGamesIfEmpty(() => ensureCoreGames())
           );
         }
         db.run(migrations[index], (alterErr) => {
