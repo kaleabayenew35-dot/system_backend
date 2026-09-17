@@ -447,7 +447,7 @@ const getLaunchToken = (req, res) => {
     if (gameErr) return err(res, 'Database error', 500);
     if (!game || game.status !== 'active') return err(res, 'Active game not found', 404);
 
-    gameTokenModel.ensureActiveTokenByGame(gameId, game.game_url, (dbErr, row) => {
+    gameTokenModel.ensureActiveTokenByGame(gameId, game.backend_url, (dbErr, row) => {
     if (dbErr) {
       console.error('[launch-token] db error', dbErr.message);
       return err(res, 'Database error', 500);

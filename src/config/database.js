@@ -22,6 +22,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 module.exports = db;
 
+const defaultBackendUrl = (name) => {
+  const key = String(name || '').toLowerCase();
+  if (key.includes('bingo')) return process.env.BINGO_BACKEND_URL || 'https://bingo-i1br.onrender.com';
+  if (key.includes('dama')) return process.env.DAMA_BACKEND_URL || 'https://dama-backend.onrender.com';
+  if (key.includes('ludo')) return process.env.LUDO_BACKEND_URL || 'https://ludo-backend-g2ir.onrender.com';
+  if (key.includes('tic') || key.includes('xo')) return process.env.XO_BACKEND_URL || 'https://tic-tak-backend.onrender.com';
+  return null;
+};
+
 const insertDefaultGames = (callback = () => {}) => {
   const sampleGames = [
     {
@@ -88,9 +97,9 @@ const insertDefaultGames = (callback = () => {}) => {
 
     sampleGames.forEach((game) => {
       db.run(
-        `INSERT OR IGNORE INTO games (name, description, game_url, mini_app_url, min_players, max_players, status)
-         VALUES (?, ?, ?, ?, ?, ?, 'active')`,
-        [game.name, game.description, game.game_url, game.mini_app_url, game.min_players, game.max_players],
+        `INSERT OR IGNORE INTO games (name, description, game_url, mini_app_url, backend_url, min_players, max_players, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'active')`,
+        [game.name, game.description, game.game_url, game.mini_app_url, defaultBackendUrl(game.name), game.min_players, game.max_players],
         (insertErr) => {
           if (insertErr) {
             console.error(`Error inserting default game ${game.name}:`, insertErr.message);
@@ -160,7 +169,25 @@ const ensureGamesSchema = () => {
       }
 
       const runMigration = (index) => {
-        if (index >= migrations.length) return seedDefaultGamesIfEmpty();
+        if (index >= migrations.length) {
+          const backendUrls = {
+            bingo: defaultBackendUrl('bingo'),
+            dama: defaultBackendUrl('dama'),
+            ludo: defaultBackendUrl('ludo'),
+            xo: defaultBackendUrl('xo'),
+          };
+          return db.run(
+            `UPDATE games SET backend_url = CASE
+              WHEN lower(name) LIKE '%bingo%' THEN ?
+              WHEN lower(name) LIKE '%dama%' THEN ?
+              WHEN lower(name) LIKE '%ludo%' THEN ?
+              WHEN lower(name) LIKE '%tic%' OR lower(name) LIKE '%xo%' THEN ?
+              ELSE backend_url END
+             WHERE backend_url IS NULL OR backend_url = ''`,
+            [backendUrls.bingo, backendUrls.dama, backendUrls.ludo, backendUrls.xo],
+            () => seedDefaultGamesIfEmpty()
+          );
+        }
         db.run(migrations[index], (alterErr) => {
           if (alterErr) {
             console.error('Error migrating games table:', alterErr.message);
