@@ -49,6 +49,24 @@ const getActiveByGame = (gameId, callback) => {
   );
 };
 
+const ensureActiveTokenByGame = (gameId, backendUrl, callback) => {
+  getActiveByGame(gameId, (lookupErr, row) => {
+    if (lookupErr) return callback(lookupErr);
+    if (row) return callback(null, row);
+
+    const token = 'GT-' + crypto.randomBytes(16).toString('hex').toUpperCase();
+    db.run(
+      `INSERT INTO game_tokens (game_id, token, label, backend_url, status)
+       VALUES (?, ?, ?, ?, 'active')`,
+      [gameId, token, 'Auto-generated launch token', backendUrl || null],
+      function (insertErr) {
+        if (insertErr) return callback(insertErr);
+        callback(null, { token });
+      }
+    );
+  });
+};
+
 const findByToken = (token, callback) => {
   db.get(
     `SELECT gt.*, g.id AS game_id, g.name AS game_name, g.status AS game_status
@@ -163,6 +181,7 @@ module.exports = {
   count,
   getByGame,
   getActiveByGame,
+  ensureActiveTokenByGame,
   findByToken,
   create,
   ensureDemoToken,

@@ -443,14 +443,14 @@ const getLaunchToken = (req, res) => {
 
   console.log('[launch-token] request', { gameId, phone, username, balance });
 
-  gameTokenModel.getActiveByGame(gameId, (dbErr, row) => {
+  gameModel.getGameById(gameId, (gameErr, game) => {
+    if (gameErr) return err(res, 'Database error', 500);
+    if (!game || game.status !== 'active') return err(res, 'Active game not found', 404);
+
+    gameTokenModel.ensureActiveTokenByGame(gameId, game.game_url, (dbErr, row) => {
     if (dbErr) {
       console.error('[launch-token] db error', dbErr.message);
       return err(res, 'Database error', 500);
-    }
-    if (!row) {
-      console.error('[launch-token] no active token', { gameId });
-      return err(res, 'Active game token not found', 404);
     }
 
     let launch;
@@ -465,6 +465,7 @@ const getLaunchToken = (req, res) => {
     }
 
     return ok(res, { token: row.token, launch });
+    });
   });
 };
 
