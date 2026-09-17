@@ -1,4 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
+const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
 
@@ -176,7 +177,26 @@ const initializeDatabase = () => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
-  `);
+  `, (err) => {
+    if (err) {
+      console.error('Error creating users table:', err.message);
+      return;
+    }
+
+    const username = process.env.ADMIN_USERNAME || 'kaleab';
+    const password = process.env.ADMIN_PASSWORD || 'Kale@1513';
+    const passwordHash = bcrypt.hashSync(password, 10);
+
+    db.run(
+      `INSERT OR IGNORE INTO users (telegram_id, phone_number, username, password)
+       VALUES (?, ?, ?, ?)`,
+      ['999999', '+1234567890', username, passwordHash],
+      (seedErr) => {
+        if (seedErr) console.error('Error creating default admin:', seedErr.message);
+        else console.log(`[db] ensured admin user: ${username}`);
+      }
+    );
+  });
 
   // Players table
   db.run(`
