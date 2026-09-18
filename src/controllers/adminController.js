@@ -26,6 +26,22 @@ const guard = (req, res) => {
   return null;
 };
 
+// ── URL sanitizer ─────────────────────────────────────────────────────────────
+/**
+ * Strips accidental duplicate scheme prefixes that browsers/copy-paste introduce:
+ *   "https://https://foo" → "https://foo"
+ *   "https://https//foo"  → "https://foo"
+ *   "https//foo"          → "https://foo"
+ */
+const sanitizeUrl = (value) => {
+  if (!value) return value;
+  let v = String(value).trim();
+  v = v.replace(/^https?:\/\/(https?:\/\/)/i, '$1');    // https://https://...
+  v = v.replace(/^https?:\/\/(https?)(\/\/)/i, '$1:$2'); // https://https//...
+  v = v.replace(/^(https?)(\/\/)/i, '$1:$2');            // https//...
+  return v;
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // AUTH
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -359,7 +375,10 @@ const getGamesList = (req, res) => {
 
 const createGame = (req, res) => {
   if (guard(req, res)) return;
-  const { name, game_url, mini_app_url, backend_url, description, min_players, max_players } = req.body;
+  const { name, description, min_players, max_players } = req.body;
+  const game_url     = sanitizeUrl(req.body.game_url);
+  const mini_app_url = sanitizeUrl(req.body.mini_app_url);
+  const backend_url  = sanitizeUrl(req.body.backend_url);
 
   gameModel.createGame({ name, game_url, mini_app_url, backend_url, description, min_players, max_players }, (dbErr, gameId) => {
     if (dbErr) return err(res, dbErr.message || 'Failed to create game', 400);
@@ -370,7 +389,10 @@ const createGame = (req, res) => {
 const updateGame = (req, res) => {
   if (guard(req, res)) return;
   const { id } = req.params;
-  const { name, game_url, mini_app_url, backend_url, description, status } = req.body;
+  const { name, description, status } = req.body;
+  const game_url     = sanitizeUrl(req.body.game_url);
+  const mini_app_url = sanitizeUrl(req.body.mini_app_url);
+  const backend_url  = sanitizeUrl(req.body.backend_url);
 
   gameModel.updateGame(id, { name, game_url, mini_app_url, backend_url, description, status }, (dbErr, changes) => {
     if (dbErr) return err(res, 'Failed to update game', 500);
