@@ -97,8 +97,8 @@ const seedGames = () => {
 
   sampleGames.forEach((game) => {
     db.run(
-      `INSERT OR IGNORE INTO games (name, description, game_url, mini_app_url, min_players, max_players, status) 
-       VALUES (?, ?, ?, ?, ?, ?, 'active')`,
+      `INSERT INTO games (name, description, game_url, mini_app_url, min_players, max_players, status)
+       VALUES (?, ?, ?, ?, ?, ?, 'active') ON CONFLICT DO NOTHING`,
       [game.name, game.description, game.game_url, game.mini_app_url, game.min_players, game.max_players],
       function(err) {
         if (err) {
@@ -119,8 +119,8 @@ const seedAdminUser = () => {
   const hashedPassword = bcrypt.hashSync(adminPassword, 10);
 
   db.run(
-    `INSERT OR IGNORE INTO users (telegram_id, phone_number, username, password) 
-     VALUES (?, ?, ?, ?)`,
+    `INSERT INTO users (telegram_id, phone_number, username, password)
+     VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING`,
     [999999, '+1234567890', adminUsername, hashedPassword],
     function(err) {
       if (err) {
@@ -130,7 +130,7 @@ const seedAdminUser = () => {
         // Create balance for admin user
         const userId = this.lastID;
         db.run(
-          `INSERT OR IGNORE INTO balances (user_id, balance, coins) VALUES (?, ?, ?)`,
+          `INSERT INTO balances (user_id, balance, coins) VALUES (?, ?, ?) ON CONFLICT (user_id) DO NOTHING`,
           [userId, 0, 0],
           (err) => {
             if (err) console.error('Error creating balance:', err);
@@ -138,7 +138,7 @@ const seedAdminUser = () => {
         );
         // Create player record for admin
         db.run(
-          `INSERT OR IGNORE INTO players (user_id) VALUES (?)`,
+          `INSERT INTO players (user_id) VALUES (?) ON CONFLICT DO NOTHING`,
           [userId],
           (err) => {
             if (err) console.error('Error creating player record:', err);

@@ -2,18 +2,18 @@ const db = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 const isUniqueConstraintError = (err) => {
-  return !!err && (err.code === 'SQLITE_CONSTRAINT' || /UNIQUE/i.test(err.message));
+  return !!err && (err.code === '23505' || /UNIQUE|duplicate key/i.test(err.message));
 };
 
 const ensureUserProfile = (userId, callback) => {
   db.run(
-    `INSERT OR IGNORE INTO balances (user_id, balance, coins) VALUES (?, ?, ?)`,
+    `INSERT INTO balances (user_id, balance, coins) VALUES (?, ?, ?) ON CONFLICT (user_id) DO NOTHING`,
     [userId, 0, 100],
     (balanceErr) => {
       if (balanceErr) return callback(balanceErr);
 
       db.run(
-        `INSERT OR IGNORE INTO players (user_id) VALUES (?)`,
+        `INSERT INTO players (user_id) VALUES (?) ON CONFLICT DO NOTHING`,
         [userId],
         (playerErr) => {
           callback(playerErr);

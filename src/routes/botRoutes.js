@@ -2,7 +2,7 @@
  * botRoutes.js
  *
  * REST API for the Telegram bot's session store and conversation-state store.
- * These replace the local better-sqlite3 database that previously lived inside
+ * These use the shared PostgreSQL database instead of a separate local store.
  * the telegram/ folder.
  *
  * Endpoints:
