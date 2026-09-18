@@ -23,6 +23,7 @@ const apiEndpoints = [
   { method: 'GET',    path: '/api',                                     description: 'API overview' },
   { method: 'GET',    path: '/api/endpoints',                           description: 'List all available API endpoints' },
   { method: 'POST',   path: '/api/users/register',                      description: 'Register a new user' },
+  { method: 'POST',   path: '/api/users/telegram-register',             description: 'Register/login via Telegram phone share (no password)' },
   { method: 'POST',   path: '/api/users/login',                         description: 'Login a user' },
   { method: 'POST',   path: '/api/users/auto-login',                    description: 'Auto-login with telegram ID' },
   { method: 'GET',    path: '/api/users/check/:telegram_id',            description: 'Check if a user exists' },
@@ -128,8 +129,9 @@ app.use(generalLimiter);
 app.use(express.json());
 
 // ── Auth rate limits ──────────────────────────────────────────────────────────
-app.use('/api/users/register',     authLimiter);
-app.use('/api/users/login',        authLimiter);
+app.use('/api/users/register',           authLimiter);
+app.use('/api/users/telegram-register',  authLimiter);
+app.use('/api/users/login',              authLimiter);
 app.use('/api/admin/games/login',  authLimiter);
 
 // ── Routes ────────────────────────────────────────────────────────────────────
