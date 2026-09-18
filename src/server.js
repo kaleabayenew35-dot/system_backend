@@ -246,13 +246,21 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`   Login:     POST /api/users/login`);
 
   const keepAliveEnabled = process.env.KEEP_ALIVE_ENABLED === 'true';
-  const keepAliveTarget = process.env.KEEP_ALIVE_TARGET;
   const keepAliveIntervalMs = process.env.KEEP_ALIVE_INTERVAL_MS;
 
   if (keepAliveEnabled) {
+    // Ping self + all configured game backends to prevent cold starts
+    const targets = [
+      process.env.KEEP_ALIVE_TARGET,
+      process.env.DAMA_BACKEND_URL,
+      process.env.BINGO_BACKEND_URL,
+      process.env.XO_BACKEND_URL,
+      process.env.LUDO_BACKEND_URL,
+    ].filter(Boolean);
+
     createKeepAliveScheduler({
       enabled: true,
-      targetUrl: keepAliveTarget,
+      targetUrl: targets,
       intervalMs: keepAliveIntervalMs,
     });
   }

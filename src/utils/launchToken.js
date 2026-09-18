@@ -12,7 +12,7 @@ const getLaunchSecret = () => {
 
 const signLaunchToken = ({ phone, username, balance, gameId }) => {
   const payload = { phone, username, balance, gameId };
-  return jwt.sign(payload, getLaunchSecret(), { expiresIn: '5m' });
+  return jwt.sign(payload, getLaunchSecret(), { expiresIn: '30m' });
 };
 
 const verifyLaunchToken = (launchToken) => {
