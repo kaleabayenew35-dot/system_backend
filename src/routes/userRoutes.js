@@ -27,6 +27,74 @@ router.post('/auto-login', (req, res) => {
   });
 });
 
+// Telegram-native registration — no username/password prompt.
+// The bot calls this after the user shares their phone number.
+// Username is derived from Telegram profile; a secure random password
+// is generated server-side and stored (user never types it).
+router.post('/telegram-register', (req, res) => {
+  const { telegram_id, phone_number, telegram_username, first_name } = req.body;
+  if (!telegram_id || !phone_number) {
+    return res.status(400).json({ error: 'telegram_id and phone_number are required' });
+  }
+
+  const db          = require('../config/database');
+  const bcrypt      = require('bcryptjs');
+  const crypto      = require('crypto');
+  const { generateToken } = require('../utils/jwt');
+  const { normalizePhone } = require('../utils/validation');
+  const userModel   = require('../models/userModel');
+
+  // If user already exists, just auto-login them
+  userModel.getUserByTelegramId(String(telegram_id), (lookupErr, existing) => {
+    if (lookupErr) return res.status(500).json({ error: 'Database error' });
+
+    if (existing) {
+      const token = generateToken(existing.id, existing.telegram_id);
+      return res.json({ success: true, token, userId: existing.id, username: existing.username, existing: true });
+    }
+
+    // Build a username from Telegram data
+    // Priority: telegram_username → first_name → tg_<id>
+    let base = (telegram_username || first_name || `tg_${telegram_id}`)
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, '_')
+      .slice(0, 18);
+    if (base.length < 3) base = `tg_${String(telegram_id).slice(-6)}`;
+
+    // Ensure username is unique by appending a suffix when needed
+    const tryInsert = (candidate, attempt) => {
+      const username = attempt === 0 ? candidate : `${candidate}_${attempt}`;
+      const password = crypto.randomBytes(16).toString('hex'); // random, never shown
+      const hash     = bcrypt.hashSync(password, 10);
+      const phone    = normalizePhone(phone_number) || phone_number;
+
+      db.run(
+        `INSERT INTO users (telegram_id, phone_number, username, password) VALUES (?, ?, ?, ?)`,
+        [String(telegram_id), phone, username, hash],
+        function (insertErr) {
+          if (insertErr) {
+            // Duplicate username — try next suffix (up to 10 attempts)
+            if (/UNIQUE|duplicate key/i.test(insertErr.message) && attempt < 10) {
+              return tryInsert(candidate, attempt + 1);
+            }
+            return res.status(400).json({ error: insertErr.message || 'Registration failed' });
+          }
+
+          const userId = this.lastID;
+          // Create balance + player records
+          db.run(`INSERT INTO balances (user_id, balance, coins) VALUES (?, 0, 100) ON CONFLICT (user_id) DO NOTHING`, [userId]);
+          db.run(`INSERT INTO players (user_id) VALUES (?) ON CONFLICT DO NOTHING`, [userId]);
+
+          const token = generateToken(userId, String(telegram_id));
+          res.json({ success: true, token, userId, username, existing: false });
+        }
+      );
+    };
+
+    tryInsert(base, 0);
+  });
+});
+
 // Register new user
 router.post('/register', register);
 
