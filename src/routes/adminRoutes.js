@@ -219,4 +219,66 @@ router.post('/cashiers/:id/withdraw',
   ctrl.withdrawFromCashier
 );
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// AI CONFIG PROXY
+// Proxies GET/PUT ai config to the appropriate game backend using server-side
+// secrets — the admin frontend never needs to hold game-backend tokens.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const GAME_AI_BACKENDS = {
+  dama:  { url: process.env.DAMA_BACKEND_URL  || 'https://dama-backend.onrender.com',  path: '/api/ai',        token: process.env.DAMA_ADMIN_TOKEN  || process.env.ADMIN_TOKEN || '' },
+  bingo: { url: process.env.BINGO_BACKEND_URL || 'https://bingo-i1br.onrender.com',    path: '/api/ai/config', token: process.env.BINGO_ADMIN_TOKEN || '' },
+  xo:    { url: process.env.XO_BACKEND_URL    || 'https://tic-tak-backend.onrender.com', path: '/api/ai/config', token: process.env.XO_ADMIN_TOKEN   || '' },
+  ludo:  { url: process.env.LUDO_BACKEND_URL  || 'https://ludo-backend-g2ir.onrender.com', path: '/api/ai/config', token: process.env.LUDO_ADMIN_TOKEN || '' },
+};
+
+// GET /api/admin/games/ai-config/:gameKey — fetch current AI enabled state
+router.get('/ai-config/:gameKey', verifyTokenMiddleware, async (req, res) => {
+  const cfg = GAME_AI_BACKENDS[req.params.gameKey];
+  if (!cfg) return res.status(400).json({ ok: false, error: 'Unknown game key' });
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (cfg.token) headers['X-Admin-Token'] = cfg.token;
+
+    const upstream = await fetch(`${cfg.url}${cfg.path}`, {
+      headers,
+      signal: AbortSignal.timeout(10000),
+    });
+    const json = await upstream.json().catch(() => ({}));
+    return res.status(upstream.status).json(json);
+  } catch (e) {
+    return res.status(502).json({ ok: false, error: `Upstream error: ${e.message}` });
+  }
+});
+
+// PUT /api/admin/games/ai-config/:gameKey — toggle AI enabled state
+router.put('/ai-config/:gameKey',
+  verifyTokenMiddleware,
+  [body('aiEnabled').isBoolean().withMessage('aiEnabled must be a boolean')],
+  async (req, res) => {
+    const errors = require('express-validator').validationResult(req);
+    if (!errors.isEmpty()) return res.status(422).json({ ok: false, error: errors.array()[0].msg });
+
+    const cfg = GAME_AI_BACKENDS[req.params.gameKey];
+    if (!cfg) return res.status(400).json({ ok: false, error: 'Unknown game key' });
+
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (cfg.token) headers['X-Admin-Token'] = cfg.token;
+
+      const upstream = await fetch(`${cfg.url}${cfg.path}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ aiEnabled: req.body.aiEnabled }),
+        signal: AbortSignal.timeout(10000),
+      });
+      const json = await upstream.json().catch(() => ({}));
+      return res.status(upstream.status).json(json);
+    } catch (e) {
+      return res.status(502).json({ ok: false, error: `Upstream error: ${e.message}` });
+    }
+  }
+);
+
 module.exports = router;

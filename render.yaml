@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: system-backend
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DAMA_LAUNCH_SECRET
+        sync: false
+      - key: BOT_TOKEN
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://system-admin-iou9.onrender.com,https://system-backend-1u5m.onrender.com
+      - key: BINGO_BACKEND_URL
+        value: https://bingo-i1br.onrender.com
+      - key: DAMA_BACKEND_URL
+        value: https://dama-backend.onrender.com
+      - key: XO_BACKEND_URL
+        value: https://tic-tak-backend.onrender.com
+      - key: LUDO_BACKEND_URL
+        value: https://ludo-backend-g2ir.onrender.com
+      - key: DAMA_ADMIN_TOKEN
+        sync: false
+      - key: KEEP_ALIVE_ENABLED
+        value: "true"
+      - key: KEEP_ALIVE_TARGET
+        value: https://system-backend-1u5m.onrender.com
+      - key: KEEP_ALIVE_INTERVAL_MS
+        value: "600000"
