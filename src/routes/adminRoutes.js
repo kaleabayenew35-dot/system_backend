@@ -286,7 +286,7 @@ const GAME_AI_BACKENDS = {
   dama:  { url: process.env.DAMA_BACKEND_URL  || 'https://dama-backend.onrender.com',  path: '/api/ai',        token: process.env.DAMA_ADMIN_TOKEN  || process.env.ADMIN_TOKEN || '' },
   bingo: { url: process.env.BINGO_BACKEND_URL || 'https://bingo-i1br.onrender.com',    path: '/api/ai/config', token: process.env.BINGO_ADMIN_TOKEN || '' },
   xo:    { url: process.env.XO_BACKEND_URL    || 'https://tic-tak-backend.onrender.com', path: '/api/ai/config', token: process.env.XO_ADMIN_TOKEN   || '' },
-  ludo:  { url: process.env.LUDO_BACKEND_URL  || 'https://ludo-backend-g2ir.onrender.com', path: '/api/ai/config', token: process.env.LUDO_ADMIN_TOKEN || '' },
+  ludo:  { url: process.env.LUDO_BACKEND_URL  || 'https://ludo-backend-wykz.onrender.com', path: '/api/ai/config', token: process.env.LUDO_ADMIN_TOKEN || '' },
 };
 
 // GET /api/admin/games/ai-config/:gameKey — fetch current AI enabled state

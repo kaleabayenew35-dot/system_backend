@@ -26,7 +26,7 @@ services:
       - key: XO_BACKEND_URL
         value: https://tic-tak-backend.onrender.com
       - key: LUDO_BACKEND_URL
-        value: https://ludo-backend-g2ir.onrender.com
+        value: https://ludo-backend-wykz.onrender.com
       - key: LUDO_ADMIN_TOKEN
         value: CHANGE_ME_TO_RANDOM_32_CHAR_STRING
       - key: DAMA_ADMIN_TOKEN
