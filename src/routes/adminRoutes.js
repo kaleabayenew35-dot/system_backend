@@ -331,6 +331,20 @@ router.put('/ai-config/:gameKey',
         signal: AbortSignal.timeout(10000),
       });
       const json = await upstream.json().catch(() => ({}));
+      if (upstream.status === 401 || upstream.status === 403) {
+        return res.status(502).json({
+          ok: false,
+          error: `Ludo AI backend rejected the admin token. Configure LUDO_ADMIN_TOKEN to match the Ludo ADMIN_TOKEN.`,
+          upstreamStatus: upstream.status,
+        });
+      }
+      if (upstream.status === 401 || upstream.status === 403) {
+        return res.status(502).json({
+          ok: false,
+          error: `Ludo AI backend rejected the admin token. Configure LUDO_ADMIN_TOKEN to match the Ludo ADMIN_TOKEN.`,
+          upstreamStatus: upstream.status,
+        });
+      }
       return res.status(upstream.status).json(json);
     } catch (e) {
       return res.status(502).json({ ok: false, error: `Upstream error: ${e.message}` });

@@ -27,6 +27,8 @@ services:
         value: https://tic-tak-backend.onrender.com
       - key: LUDO_BACKEND_URL
         value: https://ludo-backend-g2ir.onrender.com
+      - key: LUDO_ADMIN_TOKEN
+        sync: false
       - key: DAMA_ADMIN_TOKEN
         sync: false
       - key: KEEP_ALIVE_ENABLED
