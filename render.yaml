@@ -28,7 +28,7 @@ services:
       - key: LUDO_BACKEND_URL
         value: https://ludo-backend-g2ir.onrender.com
       - key: LUDO_ADMIN_TOKEN
-        sync: false
+        value: CHANGE_ME_TO_RANDOM_32_CHAR_STRING
       - key: DAMA_ADMIN_TOKEN
         sync: false
       - key: KEEP_ALIVE_ENABLED
