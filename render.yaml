@@ -18,7 +18,7 @@ services:
       - key: BOT_TOKEN
         sync: false
       - key: ALLOWED_ORIGINS
-        value: https://system-admin-iou9.onrender.com,https://system-backend-1u5m.onrender.com
+        value: https://system-admin-iou9.onrender.com,https://system-backend-1u5m.onrender.com,https://ludo-gtlb.onrender.com,https://tic-tak-5qd1.onrender.com
       - key: BINGO_BACKEND_URL
         value: https://bingo-i1br.onrender.com
       - key: DAMA_BACKEND_URL

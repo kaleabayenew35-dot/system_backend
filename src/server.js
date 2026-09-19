@@ -77,6 +77,8 @@ const defaultAllowedOrigins = [
   'https://system-backend-jbnd.onrender.com',
   'https://system-telegram.onrender.com',
   'https://system-admin-8dis.onrender.com',
+  'https://ludo-gtlb.onrender.com',
+  'https://tic-tak-5qd1.onrender.com',
   // Legacy / previous deploy URLs
   'https://dama-game-backend.onrender.com',
   'https://dama-game-6d2b.onrender.com',
