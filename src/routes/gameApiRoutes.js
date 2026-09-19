@@ -51,8 +51,28 @@ const requireGameToken = (req, res, next) => {
 
 const { normalizePhone } = require('../utils/validation');
 
-// ── Resolve player by phone or username ───────────────────────────────────────
+// ── Resolve player by phone, username, or telegram_id ────────────────────────
 const resolveUser = (identifier, callback) => {
+  // If identifier is a pure numeric string (Telegram ID), try that first
+  const isTelegramId = /^\d{6,12}$/.test(String(identifier || '').trim());
+  if (isTelegramId) {
+    db.get(
+      `SELECT u.id, u.username, u.phone_number, u.telegram_id, b.balance, b.coins
+       FROM users u LEFT JOIN balances b ON b.user_id = u.id
+       WHERE u.telegram_id = ? LIMIT 1`,
+      [String(identifier).trim()],
+      (err, row) => {
+        if (row) return callback(null, row);
+        // Fall through to phone/username lookup
+        resolveByPhoneOrUsername(identifier, callback);
+      }
+    );
+    return;
+  }
+  resolveByPhoneOrUsername(identifier, callback);
+};
+
+const resolveByPhoneOrUsername = (identifier, callback) => {
   const cleanStr = String(identifier || '').replace(/\D/g, '');
   const normalized = normalizePhone(identifier);
   let query = `
@@ -286,8 +306,9 @@ router.get('/leaderboard', requireGameToken, (req, res) => {
 // This route is also exposed directly at /dama for partner callback requests.
 // ────────────────────────────────────────────────────────────────────────────
 const handleDamaCallback = (req, res) => {
-  const { action, phone, username, amount, gameId, type, humanPlayerId } = req.body;
-  const identifier = phone || username;
+  const { action, phone, username, amount, gameId, type, humanPlayerId, playerId, telegramId } = req.body;
+  // Resolution priority: telegramId → playerId (numeric = telegram) → phone → username
+  const identifier = telegramId || (playerId && /^\d{6,12}$/.test(String(playerId)) ? playerId : null) || phone || username;
 
   if (!action) {
     return res.status(400).json({ error: 'action is required' });
