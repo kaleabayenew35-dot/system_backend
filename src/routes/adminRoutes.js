@@ -170,6 +170,63 @@ router.get('/game-tokens/active/:gameId',   verifyTokenMiddleware, ctrl.getActiv
 router.get('/game-tokens/launch/:gameId',   verifyTokenMiddleware, ctrl.getLaunchToken);
 router.get('/game-tokens/game/:gameId',     verifyTokenMiddleware, ctrl.getTokensByGame);
 
+// ── PUBLIC: refresh an expired launch token ───────────────────────────────────
+// Called by game frontends when they detect an expired launch JWT.
+// Requires only the GT- game token (which never expires) + phone/username query params.
+// No admin auth needed — the game token acts as the credential.
+router.post('/game-tokens/refresh-launch',
+  [
+    body('token').notEmpty().withMessage('game token is required'),
+    body('phone').optional().isString(),
+    body('username').optional().isString(),
+    body('balance').optional(),
+  ],
+  async (req, res) => {
+    const errors = require('express-validator').validationResult(req);
+    if (!errors.isEmpty()) return res.status(422).json({ error: errors.array()[0].msg });
+
+    const { token, phone, username, balance } = req.body;
+    const db = require('../config/database');
+    const gameTokenModel = require('../models/gameTokenModel');
+    const { signLaunchToken } = require('../utils/launchToken');
+    const { ok, err } = require('../utils/response');
+
+    // Verify the game token exists and is active
+    db.get(
+      `SELECT gt.*, g.id AS game_id, g.status AS game_status
+       FROM game_tokens gt JOIN games g ON g.id = gt.game_id
+       WHERE gt.token = ? AND gt.status = 'active'`,
+      [token],
+      (dbErr, row) => {
+        if (dbErr) return res.status(500).json({ error: 'Database error' });
+        if (!row)  return res.status(401).json({ error: 'Invalid or inactive game token' });
+        if (row.game_status !== 'active') return res.status(403).json({ error: 'Game is not active' });
+
+        // If no phone/username supplied, try to resolve from the users table by game token usage
+        const identifier = phone || username;
+        if (!identifier) {
+          return res.status(400).json({ error: 'phone or username is required to refresh the launch token' });
+        }
+
+        // Re-sign a fresh launch token with the same claims
+        let launch;
+        try {
+          launch = signLaunchToken({
+            phone:    phone    || '',
+            username: username || '',
+            balance:  balance  !== undefined ? String(balance) : '0',
+            gameId:   String(row.game_id),
+          });
+        } catch (signErr) {
+          return res.status(500).json({ error: 'Failed to sign launch token' });
+        }
+
+        return res.json({ success: true, token, launch });
+      }
+    );
+  }
+);
+
 router.post('/game-tokens',
   verifyTokenMiddleware, v.tokenBody,
   ctrl.createToken
