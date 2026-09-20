@@ -121,7 +121,7 @@ router.get('/check/:telegram_id', (req, res) => {
 // Authenticated user's own transaction history.
 router.get('/:id/transactions', verifyTokenMiddleware, (req, res) => {
   const userId = Number(req.params.id);
-  const limit = 10;
+  const limit = 7;
   const page = Math.max(Number(req.query.page) || 1, 1);
   const offset = (page - 1) * limit;
 
