@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userModel = require('../models/userModel');
+const transactionModel = require('../models/transactionModel');
 const { register, login } = require('../controllers/authController');
 const { verifyTokenMiddleware } = require('../middleware/authMiddleware');
 const { validateUsername, validatePasswordStrength } = require('../utils/validation');
@@ -114,6 +115,21 @@ router.get('/check/:telegram_id', (req, res) => {
     } else {
       res.json({ exists: false });
     }
+  });
+});
+
+// Authenticated user's own transaction history.
+router.get('/:id/transactions', verifyTokenMiddleware, (req, res) => {
+  const userId = Number(req.params.id);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+
+  if (!req.user || Number(req.user.userId) !== userId) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+
+  transactionModel.getByUser(userId, { limit }, (err, transactions) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    return res.json({ success: true, transactions: transactions || [] });
   });
 });
 

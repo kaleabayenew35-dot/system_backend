@@ -29,6 +29,7 @@ const apiEndpoints = [
   { method: 'GET',    path: '/api/users/check/:telegram_id',            description: 'Check if a user exists' },
   { method: 'GET',    path: '/api/users/:id',                           description: 'Get a user by ID' },
   { method: 'GET',    path: '/api/users/:id/balance',                   description: 'Get user balance' },
+  { method: 'GET',    path: '/api/users/:id/transactions',              description: 'Get authenticated user transaction history' },
   { method: 'PUT',    path: '/api/users/:id/username',                  description: 'Update username' },
   { method: 'PUT',    path: '/api/users/:id/password',                  description: 'Update password' },
   { method: 'GET',    path: '/api/games',                               description: 'Get all games' },
