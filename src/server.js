@@ -16,6 +16,7 @@ const xoRoutes        = require('./routes/xo');
 const verifyGameToken = require('./middleware/verifyGameToken');
 const { createKeepAliveScheduler } = require('./utils/keepAlive');
 const { resolveLaunchToken } = require('./utils/launchToken');
+const promotionModel = require('./models/promotionModel');
 
 // ── API endpoint registry (unchanged — other services depend on this list) ────
 const apiEndpoints = [
@@ -33,6 +34,7 @@ const apiEndpoints = [
   { method: 'PUT',    path: '/api/users/:id/username',                  description: 'Update username' },
   { method: 'PUT',    path: '/api/users/:id/password',                  description: 'Update password' },
   { method: 'GET',    path: '/api/games',                               description: 'Get all games' },
+  { method: 'GET',    path: '/api/promotions',                          description: 'Get active promotions' },
   { method: 'GET',    path: '/api/games/:id',                           description: 'Get a game by ID' },
   { method: 'POST',   path: '/api/games/:id/start',                     description: 'Start a game session' },
   { method: 'POST',   path: '/api/games/session/:session_id/end',       description: 'End a game session' },
@@ -180,6 +182,12 @@ app.post('/api/verify-launch-token', (req, res) => {
 app.use('/api/users',        require('./routes/userRoutes'));
 app.use('/api/games',        require('./routes/gameRoutes'));
 app.use('/api/admin/games',  require('./routes/adminRoutes'));
+app.get('/api/promotions', (req, res) => {
+  promotionModel.getAll((dbErr, promotions) => {
+    if (dbErr) return res.status(500).json({ success: false, error: 'Database error' });
+    return res.json({ success: true, promotions: promotions || [] });
+  });
+});
 app.use('/api/scores',       require('./routes/scoreRoutes'));
 app.use('/api/bot',          require('./routes/botRoutes'));
 app.use('/api/game-api',     gameApiRoutes);
