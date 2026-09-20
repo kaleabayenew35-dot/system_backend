@@ -121,15 +121,23 @@ router.get('/check/:telegram_id', (req, res) => {
 // Authenticated user's own transaction history.
 router.get('/:id/transactions', verifyTokenMiddleware, (req, res) => {
   const userId = Number(req.params.id);
-  const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+  const limit = 10;
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const offset = (page - 1) * limit;
 
   if (!req.user || Number(req.user.userId) !== userId) {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
-  transactionModel.getByUser(userId, { limit }, (err, transactions) => {
+  transactionModel.getByUser(userId, { limit: limit + 1, offset }, (err, transactions) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    return res.json({ success: true, transactions: transactions || [] });
+    const rows = transactions || [];
+    const hasNext = rows.length > limit;
+    return res.json({
+      success: true,
+      transactions: rows.slice(0, limit),
+      pagination: { page, limit, hasPrevious: page > 1, hasNext },
+    });
   });
 });
 

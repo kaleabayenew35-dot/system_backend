@@ -41,10 +41,10 @@ const getById = (id, callback) => {
   db.get(`SELECT * FROM transactions WHERE id = ?`, [id], callback);
 };
 
-const getByUser = (userId, { limit = 10 } = {}, callback) => {
+const getByUser = (userId, { limit = 10, offset = 0 } = {}, callback) => {
   db.all(
-    `SELECT * FROM transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT ?`,
-    [userId, limit],
+    `SELECT * FROM transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    [userId, limit, offset],
     callback
   );
 };
