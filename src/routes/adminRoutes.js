@@ -68,6 +68,9 @@ const v = {
 
 router.post('/login',         v.loginBody, ctrl.login);
 
+router.get('/promotions', verifyTokenMiddleware, ctrl.getPromotions);
+router.post('/promotions', verifyTokenMiddleware, ctrl.createPromotion);
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // USERS
 // ═══════════════════════════════════════════════════════════════════════════════

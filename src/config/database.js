@@ -19,7 +19,7 @@ pool.on('error', (error) => console.error('[db] PostgreSQL pool error:', error.m
 
 const autoIdTables = new Set([
   'users', 'players', 'games', 'balances', 'game_sessions', 'bet_logs', 'cashiers',
-  'game_tokens', 'transactions', 'admin_balance_transactions',
+  'game_tokens', 'transactions', 'admin_balance_transactions', 'promotions',
 ]);
 
 function translateSql(sql) {
@@ -84,6 +84,10 @@ const schemaStatements = [
     amount REAL NOT NULL, method TEXT, transaction_id TEXT, transaction_number TEXT,
     transaction_ref TEXT, status TEXT DEFAULT 'pending', rejection_reason TEXT, note TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS promotions (
+    id SERIAL PRIMARY KEY, title TEXT NOT NULL, button_text TEXT NOT NULL,
+    button_url TEXT, image_data TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )`,
   `CREATE TABLE IF NOT EXISTS admin_balances (
     id INTEGER PRIMARY KEY, balance REAL NOT NULL DEFAULT 0.00, last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP

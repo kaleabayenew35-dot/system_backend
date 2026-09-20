@@ -13,6 +13,7 @@ const cashierModel     = require('../models/cashierModel');
 const transactionModel = require('../models/transactionModel');
 const gameTokenModel   = require('../models/gameTokenModel');
 const balanceService   = require('../services/balanceService');
+const promotionModel   = require('../models/promotionModel');
 const { generateToken } = require('../utils/jwt');
 const { signLaunchToken } = require('../utils/launchToken');
 const { ok, err, parsePagination } = require('../utils/response');
@@ -24,6 +25,34 @@ const guard = (req, res) => {
     return res.status(422).json({ success: false, error: 'Validation failed', details: errors.array() });
   }
   return null;
+};
+
+const getPromotions = (req, res) => {
+  promotionModel.getAll((dbErr, promotions) => {
+    if (dbErr) return err(res, 'Database error', 500);
+    return ok(res, { promotions: promotions || [] });
+  });
+};
+
+const createPromotion = (req, res) => {
+  if (!req.body.title?.trim()) return err(res, 'Title is required', 422);
+  if (!req.body.button_text?.trim()) return err(res, 'Button text is required', 422);
+  if (req.body.image_data && !/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(req.body.image_data)) {
+    return err(res, 'Image must be a PNG, JPG, WEBP, or GIF data URL', 422);
+  }
+  if (req.body.image_data && req.body.image_data.length > 5 * 1024 * 1024) {
+    return err(res, 'Image is too large (maximum 5 MB)', 422);
+  }
+
+  promotionModel.create({
+    title: req.body.title.trim(),
+    buttonText: req.body.button_text.trim(),
+    buttonUrl: req.body.button_url?.trim(),
+    imageData: req.body.image_data,
+  }, (dbErr, id) => {
+    if (dbErr) return err(res, 'Failed to create promotion', 500);
+    return ok(res, { promotion: { id, ...req.body }, message: 'Promotion created' }, 201);
+  });
 };
 
 // ── URL sanitizer ─────────────────────────────────────────────────────────────
@@ -630,4 +659,6 @@ module.exports = {
   // cashiers
   getCashiers, createCashier, updateCashier, deleteCashier,
   depositToCashier, withdrawFromCashier,
+  // promotions
+  getPromotions, createPromotion,
 };

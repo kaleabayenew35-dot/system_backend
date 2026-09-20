@@ -130,7 +130,7 @@ const authLimiter = rateLimit({
 });
 
 app.use(generalLimiter);
-app.use(express.json());
+app.use(express.json({ limit: '6mb' }));
 
 // ── Auth rate limits ──────────────────────────────────────────────────────────
 app.use('/api/users/register',           authLimiter);
