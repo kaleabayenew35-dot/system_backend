@@ -74,6 +74,7 @@ const apiEndpoints = [
 const defaultAllowedOrigins = [
   // Local development
   'http://localhost:3000',
+  'http://localhost:3001',
   'http://localhost:5173',
   'http://localhost:5000',
   // Production — all three deployed services
@@ -83,6 +84,7 @@ const defaultAllowedOrigins = [
   'https://ludo-gtlb.onrender.com',
   'https://tic-tak-5qd1.onrender.com',
   'https://telegram-mini-app-n9ee.onrender.com',
+  'https://bingo-i1br.onrender.com',
   // Legacy / previous deploy URLs
   'https://dama-game-backend.onrender.com',
   'https://dama-game-6d2b.onrender.com',
