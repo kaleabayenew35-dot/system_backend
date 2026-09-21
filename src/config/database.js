@@ -156,7 +156,7 @@ const db = {
 
 function defaultBackendUrl(name) {
   const key = String(name || '').toLowerCase();
-  if (key.includes('bingo')) return process.env.BINGO_BACKEND_URL || 'https://bingo-i1br.onrender.com';
+  if (key.includes('bingo')) return process.env.BINGO_BACKEND_URL || 'https://bingo-backend-m1yf.onrender.com';
   if (key.includes('dama')) return process.env.DAMA_BACKEND_URL || 'https://dama-backend.onrender.com';
   if (key.includes('ludo')) return process.env.LUDO_BACKEND_URL || 'https://ludo-backend-wykz.onrender.com';
   if (key.includes('tic') || key.includes('xo')) return process.env.XO_BACKEND_URL || 'https://tic-tak-backend.onrender.com';
