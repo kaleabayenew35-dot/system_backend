@@ -39,7 +39,6 @@ const requireGameToken = (req, res, next) => {
 };
 
 const resolveUser = (identifier, callback) => {
-  const cleanStr = String(identifier || '').replace(/\D/g, '');
   const normalized = normalizePhone(identifier);
   let query = `
     SELECT u.id, u.username, u.phone_number, b.balance, b.coins
@@ -48,12 +47,6 @@ const resolveUser = (identifier, callback) => {
     WHERE u.phone_number = ? OR u.phone_number = ? OR u.username = ?
   `;
   const params = [identifier, normalized, identifier];
-
-  if (cleanStr.length >= 9) {
-    const last9 = cleanStr.slice(-9);
-    query += ` OR u.phone_number LIKE ?`;
-    params.push(`%${last9}`);
-  }
 
   query += ` LIMIT 1`;
   db.get(query, params, callback);
