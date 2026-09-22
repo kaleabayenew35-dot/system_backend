@@ -36,35 +36,63 @@ const resolveLaunchToken = (launchToken, callback) => {
 
     const normalizedPhone = normalizePhone(payload.phone);
 
+    const finish = (user) => {
+      callback(null, {
+        valid: true,
+        payload,
+        user: {
+          id: user.id,
+          username: user.username,
+          phone: user.phone_number,
+          balance: Number(user.balance ?? 0),
+          coins: Number(user.coins ?? 0),
+          telegramId: user.telegram_id,
+        },
+      });
+    };
+
+    // First search strictly by phone number to ensure correct player identity
     db.get(
       `SELECT u.id, u.username, u.phone_number, u.telegram_id, b.balance, b.coins
        FROM users u
        LEFT JOIN balances b ON b.user_id = u.id
-       WHERE u.phone_number = ? OR u.phone_number = ? OR u.username = ?
+       WHERE u.phone_number = ? OR u.phone_number = ?
        LIMIT 1`,
-      [payload.phone, normalizedPhone, payload.username || ''],
+      [payload.phone, normalizedPhone],
       (err, user) => {
         if (err) return callback(err);
 
-        if (!user) {
-          return callback(null, {
-            valid: false,
-            reason: 'user not found for launch payload',
-            payload,
-          });
+        if (user) {
+          return finish(user);
         }
 
-        callback(null, {
-          valid: true,
+        // Only fall back to username search if phone was not found and username is provided
+        if (payload.username && payload.username.trim()) {
+          return db.get(
+            `SELECT u.id, u.username, u.phone_number, u.telegram_id, b.balance, b.coins
+             FROM users u
+             LEFT JOIN balances b ON b.user_id = u.id
+             WHERE u.username = ?
+             LIMIT 1`,
+            [payload.username.trim()],
+            (uErr, userByUsername) => {
+              if (uErr) return callback(uErr);
+              if (!userByUsername) {
+                return callback(null, {
+                  valid: false,
+                  reason: 'user not found for launch payload',
+                  payload,
+                });
+              }
+              return finish(userByUsername);
+            }
+          );
+        }
+
+        return callback(null, {
+          valid: false,
+          reason: 'user not found for launch payload',
           payload,
-          user: {
-            id: user.id,
-            username: user.username,
-            phone: user.phone_number,
-            balance: Number(user.balance ?? 0),
-            coins: Number(user.coins ?? 0),
-            telegramId: user.telegram_id,
-          },
         });
       }
     );
