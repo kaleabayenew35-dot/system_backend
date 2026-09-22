@@ -87,11 +87,25 @@ const checkPasswordStrength = (password) => {
 };
 
 const normalizePhone = (phone) => {
-  if (!phone) return '';
+  if (phone === undefined || phone === null || phone === '') return '';
+
   const clean = String(phone).replace(/\D/g, '');
-  if (clean.length >= 9) {
-    return '251' + clean.slice(-9);
+  if (!clean) return '';
+
+  // Already canonical: 251 + 9-digit national number
+  if (clean.startsWith('251')) return clean;
+
+  // Local Ethiopian format: 0XXXXXXXXX -> 251XXXXXXXXX
+  if (clean.startsWith('0') && clean.length === 10) {
+    return `251${clean.slice(1)}`;
   }
+
+  // National number without country code: 9XXXXXXXX -> 2519XXXXXXXX
+  if (clean.length === 9) {
+    return `251${clean}`;
+  }
+
+  // For any already-formed 12+ digit value, keep it rather than truncating it.
   return clean;
 };
 
