@@ -47,6 +47,7 @@ const schemaStatements = [
     phone_number TEXT NOT NULL, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS users_phone_number_unique ON users(phone_number)`,
   `CREATE TABLE IF NOT EXISTS players (
     id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL,
     total_games_played INTEGER DEFAULT 0, wins INTEGER DEFAULT 0, losses INTEGER DEFAULT 0,

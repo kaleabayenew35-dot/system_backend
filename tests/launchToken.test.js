@@ -60,3 +60,14 @@ test('resolveLaunchToken returns the authoritative user record from the backend 
 
   await cleanup(userId);
 });
+
+test('phone normalization keeps two distinct Ethiopian numbers separate', () => {
+  const { normalizePhone } = require('../src/utils/validation');
+
+  const phoneA = '251909095880';
+  const phoneB = '251709095880';
+
+  assert.equal(normalizePhone(phoneA), phoneA);
+  assert.equal(normalizePhone(phoneB), phoneB);
+  assert.notEqual(normalizePhone(phoneA), normalizePhone(phoneB));
+});

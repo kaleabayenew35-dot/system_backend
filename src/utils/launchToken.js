@@ -51,14 +51,14 @@ const resolveLaunchToken = (launchToken, callback) => {
       });
     };
 
-    // First search strictly by phone number to ensure correct player identity
+    // First search strictly by canonical phone number to ensure correct player identity
     db.get(
       `SELECT u.id, u.username, u.phone_number, u.telegram_id, b.balance, b.coins
        FROM users u
        LEFT JOIN balances b ON b.user_id = u.id
-       WHERE u.phone_number = ? OR u.phone_number = ?
+       WHERE u.phone_number = ?
        LIMIT 1`,
-      [payload.phone, normalizedPhone],
+      [normalizedPhone],
       (err, user) => {
         if (err) return callback(err);
 

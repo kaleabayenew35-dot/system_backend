@@ -44,9 +44,9 @@ const resolveUser = (identifier, callback) => {
     SELECT u.id, u.username, u.phone_number, b.balance, b.coins
     FROM users u
     LEFT JOIN balances b ON b.user_id = u.id
-    WHERE u.phone_number = ? OR u.phone_number = ? OR u.username = ?
+    WHERE u.phone_number = ? OR u.username = ?
   `;
-  const params = [identifier, normalized, identifier];
+  const params = [normalized || identifier, identifier];
 
   query += ` LIMIT 1`;
   db.get(query, params, callback);
