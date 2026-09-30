@@ -83,7 +83,7 @@ const defaultAllowedOrigins = [
   'https://system-admin-8dis.onrender.com',
   'https://ludo-gtlb.onrender.com',
   'https://tic-tak-5qd1.onrender.com',
-  'https://telegram-mini-app-n9ee.onrender.com',
+  'https://telegram-mini-app-five-tau.vercel.app/',
   'https://bingo-i1br.onrender.com',
   // Legacy / previous deploy URLs
   'https://dama-game-backend.onrender.com',
